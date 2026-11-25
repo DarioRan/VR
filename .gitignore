@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Godot (also ignored inside the project)
+impossible-spaces/.godot/
+impossible-spaces/android/
+
+# Builds and pulled logs
+*.apk
+*.aab
+*.idsig
+exports/
+logs/

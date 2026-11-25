@@ -1,0 +1,65 @@
+[gd_scene format=3 uid="uid://cs84qhhybe7i2"]
+
+[ext_resource type="Script" uid="uid://chm74v7h5mm8w" path="res://core/xr_rig/xr_origin_3d.gd" id="1_kagw3"]
+[ext_resource type="Script" uid="uid://2ge3wqlxwi0n" path="res://core/xr_rig/right_hand.gd" id="2_3leyv"]
+[ext_resource type="Script" uid="uid://ba7e3ouo1f0ad" path="res://core/xr_rig/left_hand.gd" id="3_ogfmo"]
+[ext_resource type="Script" path="res://core/xr_rig/stride_scaler.gd" id="4_stride"]
+[ext_resource type="Script" path="res://core/xr_rig/boundary_monitor.gd" id="5_bound"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_t7gxb"]
+radius = 0.1
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_345on"]
+radius = 0.1
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cq8vx"]
+height = 1.7
+
+[node name="XROrigin3D" type="XROrigin3D" unique_id=1744820872]
+script = ExtResource("1_kagw3")
+
+[node name="RightHand" type="XRController3D" parent="." unique_id=645865866]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, -0.5)
+tracker = &"right_hand"
+script = ExtResource("2_3leyv")
+
+[node name="Area3D" type="Area3D" parent="RightHand" unique_id=847487563]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RightHand/Area3D" unique_id=1522528941]
+mesh = SubResource("SphereMesh_t7gxb")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RightHand/Area3D" unique_id=1302125863]
+shape = SubResource("SphereShape3D_345on")
+
+[node name="XRCamera3D" type="XRCamera3D" parent="." unique_id=642007709]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+
+[node name="LeftHand" type="XRController3D" parent="." unique_id=1528937026]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1, -0.5)
+tracker = &"left_hand"
+script = ExtResource("3_ogfmo")
+
+[node name="Area3D" type="Area3D" parent="LeftHand" unique_id=2080198885]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="LeftHand/Area3D" unique_id=445381480]
+mesh = SubResource("SphereMesh_t7gxb")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LeftHand/Area3D" unique_id=211769866]
+shape = SubResource("SphereShape3D_345on")
+
+[node name="Body" type="Area3D" parent="." unique_id=88922045]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body" unique_id=1432444743]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_cq8vx")
+
+[node name="StrideScaler" type="Node" parent="."]
+script = ExtResource("4_stride")
+
+[node name="BoundaryMonitor" type="Node" parent="."]
+script = ExtResource("5_bound")
+
+[node name="HeadArea" type="Area3D" parent="XRCamera3D" groups=["player"]]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="XRCamera3D/HeadArea"]
+shape = SubResource("SphereShape3D_345on")
