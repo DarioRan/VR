@@ -126,5 +126,29 @@ func _initialize() -> void:
 		and JSON.parse_string(row[7]) == {"piece_id": 6.0},
 		"participant and data written to the CSV (%s)" % [row])
 
+	# DebugHud: attached to the camera, shows room and participant, red near the edge
+	var hud: Node = root.get_node("DebugHud")
+	cam.position = Vector3(0.0, 1.7, 0.0)
+	hud.toggle()
+	hud.toggle()  # off and on again forces a refresh
+	await process_frame
+	await process_frame
+	var label := cam.get_node_or_null("DebugHud") as Label3D
+	_check(label != null and label.visible, "HUD label is attached to the camera")
+	_check(hud.get_text().contains("room_01") and hud.get_text().contains("P07"),
+		"HUD shows room and participant (%s)" % hud.get_text().replace("\n", " | "))
+	cam.position = Vector3(1.15, 1.7, 0.0)
+	hud.toggle()
+	hud.toggle()  # off and on again forces a refresh
+	await process_frame
+	await process_frame
+	_check(hud.get_text().contains("edge  0.10 m") and label.modulate == hud.COLOR_WARN,
+		"HUD warns 0.10 m from the edge (%s)" % hud.get_text().replace("\n", " | "))
+	hud.toggle()
+	await process_frame
+	await process_frame
+	_check(not label.visible, "HUD toggles off")
+	hud.toggle()
+
 	print("\n%d failure(s)" % _failures)
 	quit(_failures)

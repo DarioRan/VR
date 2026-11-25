@@ -160,6 +160,9 @@ Weekends are buffer only.
 
 Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket IDs.
 
+- 2026-11-25, Dario: D-01 EventLogger: `room_entered` logs the connector used as `via`,
+  `set_participant()`, event names listed in the header. D-02 debug HUD (autoload `DebugHud`,
+  debug builds only, toggle Y / H). Smoke test covers both. Branch `feature/logger-hud`.
 - 2026-11-25, Ahmed: added the project plan and all tickets (SET, A, B, C, D, ALL) to this file.
 - 2026-11-25, Ahmed: project skeleton in `impossible-spaces/` from `basic-xr-scene`.
   Autoloads `RoomManager` and `EventLogger`; `Room`, `Connector`, `Portal`, `Corridor`,
@@ -171,6 +174,10 @@ Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket I
 
 Any change to a shared API, signal, scene structure or project setting. Say who is affected.
 
+- 2026-11-25, Dario: new autoload `DebugHud` (`extension/ui/debug_hud.gd`); it attaches a
+  Label3D under the active camera at runtime, no rig edit. Left controller Y toggles it.
+  Event names and data keys are now listed in `core/event_logger.gd`: please log with those.
+  Affects: everyone (A: Y button is taken in debug builds).
 - 2026-11-25, Ahmed: names differ from the plan doc: `EventLogger` (not `Logger`, which is
   a built-in Godot class) and `RoomManager.prepare_room()` (not `preload()`, a GDScript keyword).
   Affects: everyone.

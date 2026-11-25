@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 RoomManager="*res://core/room_manager.gd"
 EventLogger="*res://core/event_logger.gd"
+DebugHud="*res://extension/ui/debug_hud.gd"
 
 [display]
 
