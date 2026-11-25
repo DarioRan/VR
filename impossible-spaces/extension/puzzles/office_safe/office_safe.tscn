@@ -1,0 +1,87 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://extension/puzzles/office_safe/office_safe.gd" id="1_safe"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_body"]
+albedo_color = Color(0.22, 0.24, 0.27, 1)
+metallic = 0.6
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_door"]
+albedo_color = Color(0.3, 0.32, 0.36, 1)
+metallic = 0.6
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="Mat_inside"]
+albedo_color = Color(0.5, 0.12, 0.12, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_screen"]
+albedo_color = Color(0.03, 0.05, 0.04, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_piece"]
+albedo_color = Color(0.95, 0.75, 0.3, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_door"]
+material = SubResource("Mat_door")
+size = Vector3(0.32, 0.42, 0.02)
+
+[sub_resource type="BoxMesh" id="Mesh_screen"]
+material = SubResource("Mat_screen")
+size = Vector3(0.26, 0.07, 0.01)
+
+[sub_resource type="BoxMesh" id="Mesh_piece"]
+material = SubResource("Mat_piece")
+size = Vector3(0.12, 0.12, 0.01)
+
+[node name="OfficeSafe" type="Node3D"]
+script = ExtResource("1_safe")
+editor_description = "P2 office safe (owner: Dario). Origin on the floor at the centre of the footprint.
+Front faces -Z. 0.4 x 1.0 x 0.4 m. Keypad at 0.7 m, display at 0.9 m, door and pieces below.
+Set the code on the root node (exported 'code')."
+
+[node name="Body" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="Shell" type="CSGBox3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+size = Vector3(0.4, 1.0, 0.4)
+material = SubResource("Mat_body")
+
+[node name="Cavity" type="CSGBox3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -0.04)
+operation = 2
+size = Vector3(0.32, 0.42, 0.34)
+material = SubResource("Mat_inside")
+
+[node name="DoorHinge" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, 0.3, -0.2)
+
+[node name="Door" type="MeshInstance3D" parent="DoorHinge"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.16, 0, -0.01)
+mesh = SubResource("Mesh_door")
+
+[node name="Keypad" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, -0.2)
+
+[node name="Screen" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, -0.205)
+mesh = SubResource("Mesh_screen")
+
+[node name="Display" type="Label3D" parent="."]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0.9, -0.211)
+pixel_size = 0.0005
+text = "_ _ _ _"
+font_size = 96
+outline_size = 0
+
+[node name="PieceSlot6" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0.16, 0.02)
+
+[node name="Placeholder" type="MeshInstance3D" parent="PieceSlot6"]
+mesh = SubResource("Mesh_piece")
+
+[node name="PieceSlot7" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0.16, 0.02)
+
+[node name="Placeholder" type="MeshInstance3D" parent="PieceSlot7"]
+mesh = SubResource("Mesh_piece")

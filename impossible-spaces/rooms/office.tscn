@@ -1,6 +1,8 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://rooms/room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://extension/puzzles/office_safe/office_safe.tscn" id="2_safe"]
+[ext_resource type="Script" path="res://extension/puzzles/office_safe/code_clue.gd" id="3_clue"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_floor"]
 albedo_color = Color(0.55, 0.45, 0.35, 1)
@@ -11,13 +13,12 @@ albedo_color = Color(0.82, 0.84, 0.8, 1)
 [sub_resource type="StandardMaterial3D" id="Mat_desk"]
 albedo_color = Color(0.42, 0.3, 0.2, 1)
 
-[sub_resource type="StandardMaterial3D" id="Mat_safe_slot"]
-transparency = 1
-shading_mode = 0
-albedo_color = Color(1, 0.6, 0.1, 0.35)
+[sub_resource type="StandardMaterial3D" id="Mat_paper"]
+albedo_color = Color(0.97, 0.95, 0.7, 1)
 
-[sub_resource type="BoxMesh" id="Mesh_safe_slot"]
-size = Vector3(0.4, 0.5, 0.4)
+[sub_resource type="BoxMesh" id="Mesh_paper"]
+material = SubResource("Mat_paper")
+size = Vector3(0.2, 0.16, 0.004)
 
 [node name="Office" type="Node3D"]
 script = ExtResource("1_room")
@@ -30,7 +31,7 @@ Origin = centre of the taped square, x east, north = -z.
 Room zone: x -1.25 to +0.5, z -0.5 to +1.25 (1.75 x 1.75 m, gain 1.0).
 Doors: N1 (north wall, centre x -0.8) -> hallway; E2 (east wall, centre z +0.85) <- corridor from bedroom.
 Keep 0.75 m clear inside each door; furniture only on the west and south walls.
-SafeSlot: the P2 safe scene goes here (SW corner, facing east)."
+SafeSlot: the P2 safe (SW corner, facing east). CodeClue: static code note on the west wall (until the portal window)."
 
 [node name="Geometry" type="CSGCombiner3D" parent="."]
 use_collision = true
@@ -89,7 +90,19 @@ metadata/slot = "E2"
 [node name="SafeSlot" type="Marker3D" parent="."]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -1.05, 0, 1.05)
 
-[node name="Placeholder" type="MeshInstance3D" parent="SafeSlot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
-mesh = SubResource("Mesh_safe_slot")
-surface_material_override/0 = SubResource("Mat_safe_slot")
+[node name="OfficeSafe" parent="SafeSlot" instance=ExtResource("2_safe")]
+
+[node name="CodeClue" type="Label3D" parent="." node_paths=PackedStringArray("safe")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.244, 1.35, 0.55)
+pixel_size = 0.0005
+text = "SAFE
+? ? ? ?"
+font_size = 64
+outline_size = 0
+modulate = Color(0.1, 0.1, 0.15, 1)
+script = ExtResource("3_clue")
+safe = NodePath("../SafeSlot/OfficeSafe")
+
+[node name="Paper" type="MeshInstance3D" parent="CodeClue"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.003)
+mesh = SubResource("Mesh_paper")

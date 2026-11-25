@@ -160,6 +160,10 @@ Weekends are buffer only.
 
 Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket IDs.
 
+- 2026-11-25, Dario: P2 office safe v0 (`extension/puzzles/office_safe/`): keypad pressed by
+  touching keys with the hand spheres, code 4719 on a note on the office west wall (static
+  stand-in for the portal window), door opens, pieces 6-7 slots inside. Branch
+  `feature/office-safe` (on top of `feature/office-room`, merge that first).
 - 2026-11-25, Dario: office greybox (`rooms/office.tscn`) on the plan's blueprint: zone
   1.75 x 1.75 m, doors N1 -> hallway and E2 <- bedroom, desk west wall, `SafeSlot` in the SW
   corner. `tests/room_preview.tscn` shows one room with the rig (until RoomSandbox exists).
@@ -175,6 +179,9 @@ Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket I
 
 Any change to a shared API, signal, scene structure or project setting. Say who is affected.
 
+- 2026-11-25, Dario: new log event `code_entered` {"id", "ok", "entry"} on every keypad OK;
+  the safe also logs `puzzle_solved` {"id": "P2"} itself until PuzzleState does it.
+  Narmeen's modulus lock can reuse `code_entered` with id "exit". Affects: A (Narmeen), D.
 - 2026-11-25, Ahmed: names differ from the plan doc: `EventLogger` (not `Logger`, which is
   a built-in Godot class) and `RoomManager.prepare_room()` (not `preload()`, a GDScript keyword).
   Affects: everyone.
@@ -239,7 +246,9 @@ What we agreed on, so nobody has to ask again.
 
 Anything stopping you, or a question for the group. Remove it when solved.
 
--
+- 2026-11-25, Dario: PuzzleState API for the starter kit: the safe calls
+  `PuzzleState.set_flag(&"safe_open", true)` if that method exists. OK with that name?
+  And who logs `puzzle_solved`: each puzzle, or PuzzleState?
 
 ## Integration day checklist (Tue 1 Dec, Fri 4 Dec)
 

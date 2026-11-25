@@ -132,5 +132,58 @@ func _check_office(main: Node3D, rm: Node) -> void:
 	# 0.75 m clear inside each door (knee height, where the desk would be).
 	_check(not hit.call(Vector3(-1.175, 0.4, -0.45), Vector3(-1.175, 0.4, 0.25)), "path from N1 clear of the desk")
 	_check(not hit.call(Vector3(0.45, 0.4, 0.85), Vector3(-0.25, 0.4, 0.85)), "path from E2 clear")
+	await _check_safe(main, office)
 	office.queue_free()
+
+
+## P2 safe: clue shows the code, keypad by touch and by API, wrong and right code, door, log.
+func _check_safe(main: Node3D, office: Node3D) -> void:
+	var safe: Node3D = office.get_node("SafeSlot/OfficeSafe")
+	var clue: Label3D = office.get_node("CodeClue")
+	var spaced := PackedStringArray()
+	for ch: String in safe.code:
+		spaced.append(ch)
+	_check(clue.text == "SAFE\n" + " ".join(spaced), "code note shows the safe code (%s)" % clue.text.replace("\n", " "))
+
+	# Touch key 5 with a hand sphere (radius 0.1): one press while held, again after pulling back.
+	var poker := XRController3D.new()
+	poker.tracker = &"test_poker"
+	main.add_child(poker)
+	var keypad: Node3D = safe.get_node("Keypad")
+	var five: Vector2 = safe._key_center(4)
+	var away := keypad.to_global(Vector3(five.x, five.y, -0.3))
+	var touch := keypad.to_global(Vector3(five.x, five.y, -0.09))
+	poker.global_position = away
+	await _wait_physics()
+	poker.global_position = touch
+	await _wait_physics(4)
+	_check(safe.entry == "5", "touching key 5 presses it once (entry '%s')" % safe.entry)
+	poker.global_position = away
+	await _wait_physics()
+	poker.global_position = touch
+	await _wait_physics()
+	_check(safe.entry == "55", "pull back and touch again presses again (entry '%s')" % safe.entry)
+	poker.queue_free()
+
+	var results: Array[bool] = []
+	safe.code_entered.connect(func(ok: bool) -> void: results.append(ok))
+	safe.press("C")
+	for k in ["1", "2", "3", "OK"]:
+		safe.press(k)
+	_check(results == [false] and not safe.is_open and safe.entry == "", "wrong code is rejected")
+
+	var solved := [false]
+	safe.solved.connect(func() -> void: solved[0] = true)
+	var door: Node3D = safe.get_node("DoorHinge/Door")
+	var closed_x := door.global_position.x
+	for ch: String in safe.code:
+		safe.press(ch)
+	safe.press("OK")
+	await create_timer(1.5).timeout
+	_check(safe.is_open and solved[0] and results == [false, true], "right code opens the safe")
+	_check(door.global_position.x > closed_x + 0.1,
+		"door swings out into the room (x %.2f -> %.2f)" % [closed_x, door.global_position.x])
+	var log_text := FileAccess.get_file_as_string(root.get_node("EventLogger").file_path)
+	_check(log_text.contains("code_entered") and log_text.contains("puzzle_solved"),
+		"code_entered and puzzle_solved are logged")
 	quit(_failures)
