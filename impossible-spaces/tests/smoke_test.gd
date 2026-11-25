@@ -21,6 +21,19 @@ func _wait_physics(n: int = 2) -> void:
 		await physics_frame
 
 
+## Last row of the current session CSV, split into columns (handles the quoted JSON column).
+func _last_log_row(logger: Node) -> PackedStringArray:
+	var f := FileAccess.open(logger.file_path, FileAccess.READ)
+	if f == null:
+		return PackedStringArray()
+	var row := PackedStringArray()
+	while not f.eof_reached():
+		var r := f.get_csv_line()
+		if r.size() > 1:
+			row = r
+	return row
+
+
 func _initialize() -> void:
 	var main: Node3D = load("res://main.tscn").instantiate()
 	root.add_child(main)
@@ -96,6 +109,22 @@ func _initialize() -> void:
 		var turned := rad_to_deg(angle_difference(yaw_before, cam.global_basis.get_euler().y))
 		_check(is_equal_approx(snappedf(turned, 0.1), -30.0), "right stick snap-turns once (%.1f deg)" % turned)
 		_check(cam.global_position.distance_to(pos_before) < 0.01, "snap turn pivots around the head")
+
+	# EventLogger: room_entered records the connector used, technique column stays the layout's
+	var logger: Node = root.get_node("EventLogger")
+	var corridor: Node3D = load("res://connectors/corridor.gd").new()
+	rm.on_connector_crossed(corridor, rm.current_room.room_id, &"room_01")
+	corridor.free()
+	var row := _last_log_row(logger)
+	_check(row.size() == 8 and row[4] == "room_entered" and row[2] == "PORTAL" and row[7].contains("CORRIDOR"),
+		"room_entered logs via=CORRIDOR, technique column PORTAL (%s)" % [row])
+
+	logger.set_participant(" P07 ")
+	logger.log_event("piece_collected", {"piece_id": 6})
+	row = _last_log_row(logger)
+	_check(row.size() == 8 and row[1] == "P07" and row[3] == "room_01" and row[4] == "piece_collected"
+		and JSON.parse_string(row[7]) == {"piece_id": 6.0},
+		"participant and data written to the CSV (%s)" % [row])
 
 	print("\n%d failure(s)" % _failures)
 	quit(_failures)
