@@ -31,10 +31,13 @@ window/stretch/aspect="expand"
 
 [rendering]
 
+anti_aliasing/quality/msaa_3d=1
 rendering_device/driver.windows="d3d12"
 textures/vram_compression/import_etc2_astc=true
 
 [xr]
 
 openxr/enabled=true
+openxr/foveation_level=3
+openxr/foveation_dynamic=true
 shaders/enabled=true

@@ -38,15 +38,65 @@ func _initialize() -> void:
 	rm.activate(&"room_02")
 	_check(rm.current_room == room02 and not room01.visible and room02.visible, "activate() swaps rooms")
 
-	# Stride scaling: room_02 is 5 x 2.5 m -> gain (2, 1)
+	# Stride scaling: room_02 is 5 x 2.5 m -> gain (2, 1).
+	# Entering with the head 0.5 m off-centre is a 0.5 m jump, so the new gain
+	# waits for the screen fade to reach black (A-04).
+	var stride: Node = origin.get_node("StrideScaler")
+	var fade: Node = cam.get_node("ScreenFade")
+	rm.activate(&"room_01")
 	cam.position = Vector3(0.5, 1.7, 0.5)
 	await _wait_physics()
+	var darkest := [0.0]
+	var watch := func() -> void: darkest[0] = maxf(darkest[0], fade.get_amount())
+	process_frame.connect(watch)
+	rm.activate(&"room_02")
+	await _wait_physics(1)
+	_check(stride.current_gain == Vector2.ONE, "big gain change waits for the fade")
+	await _wait_physics(40)
+	process_frame.disconnect(watch)
+	_check(darkest[0] > 0.95, "fade reaches black during the gain change (%.2f)" % darkest[0])
 	var head := cam.global_position
 	_check(is_equal_approx(head.x, 1.0) and is_equal_approx(head.z, 0.5),
 		"stride gain 2 on x in room_02 (head at %s)" % head)
+	_check(fade.get_amount() < 0.01, "fade clears after the gain change")
+
+	# Small jump near the centre: applied at once, no fade
+	cam.position = Vector3(0.01, 1.7, 0.0)
+	rm.activate(&"room_01")
+	await _wait_physics(1)
+	_check(stride.current_gain == Vector2.ONE, "small gain change applies at once")
+	rm.activate(&"room_02")
+	await _wait_physics(1)
+
+	# Pilot gain caps (A-07): 2.0 -> 1.25 -> 1.5 -> 2.0
+	_check(is_equal_approx(stride.cycle_gain_cap(), 1.25), "gain cap cycles to 1.25")
+	await _wait_physics(1)
+	_check(is_equal_approx(stride.current_gain.x, 1.25), "cap limits room_02 gain to 1.25")
+	stride.cycle_gain_cap()
+	stride.cycle_gain_cap()
+	_check(is_equal_approx(stride.max_gain, 2.0), "gain cap cycles back to 2.0")
+	await _wait_physics(1)
+
+	# Footprint shows the scaled play area
+	var footprint: Node3D = main.get_node("PlayAreaOutline")
+	_check(is_equal_approx(footprint.global_basis.get_scale().x, 2.0), "footprint scaled by the gain")
+
+	# Hands are small spheres, not stretched capsules
+	var hand_mesh: SphereMesh = origin.get_node("LeftHand/Area3D/MeshInstance3D").mesh
+	_check(is_equal_approx(hand_mesh.height, hand_mesh.radius * 2.0), "hand mesh is a sphere")
+
+	# Boundary warning (A-06): dark near the edge, clear in the centre
+	var monitor: Node = origin.get_node("BoundaryMonitor")
+	cam.position = Vector3(0.0, 1.7, 0.0)
+	await _wait_physics()
+	_check(fade.get_amount() < 0.01, "no warning in the centre")
+	cam.position = Vector3(1.05, 1.7, 0.0)
+	await _wait_physics()
+	_check(fade.get_amount() > 0.3, "warning 0.2 m from the edge (%.2f)" % fade.get_amount())
+	cam.position = Vector3(0.0, 1.7, 0.0)
+	await _wait_physics()
 
 	# Boundary: 1.2 m from the centre is past the 0.2 m margin
-	var monitor: Node = origin.get_node("BoundaryMonitor")
 	var hits := [0]
 	monitor.boundary_left.connect(func() -> void: hits[0] += 1)
 	cam.position = Vector3(1.2, 1.7, 0.0)
@@ -96,6 +146,12 @@ func _initialize() -> void:
 		var turned := rad_to_deg(angle_difference(yaw_before, cam.global_basis.get_euler().y))
 		_check(is_equal_approx(snappedf(turned, 0.1), -30.0), "right stick snap-turns once (%.1f deg)" % turned)
 		_check(cam.global_position.distance_to(pos_before) < 0.01, "snap turn pivots around the head")
+
+		# Recenter (A-01) undoes debug joystick moves
+		origin.recenter()
+		await _wait_physics()
+		var back := cam.global_position
+		_check(absf(back.x) < 0.01 and absf(back.z) < 0.01, "recenter resets the play area (head at %s)" % back)
 
 	print("\n%d failure(s)" % _failures)
 	quit(_failures)
