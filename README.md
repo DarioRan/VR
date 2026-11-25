@@ -6,6 +6,8 @@ walkthrough with a puzzle layer. Target: Meta Quest (standalone), 2.5 x 2.5 m pl
 
 Team: Ahmed, Dario, Narmeen, Sofia. Plan and schedule: see the shared project plan doc.
 
+**Read and update [`TEAM_SYNC.md`](TEAM_SYNC.md) every session:** status, changes, room plan, ideas.
+
 ## Requirements
 
 - **Godot 4.7.2 stable** (everyone on the same version)
@@ -20,7 +22,17 @@ Team: Ahmed, Dario, Narmeen, Sofia. Plan and schedule: see the shared project pl
 3. Run on desktop (F5): no headset is found, so the XR simulator starts
    (see `addons/xr-simulator` for the controls).
 4. Run on the Quest: plug it in and use the one-click deploy button with the `MetaHeadset` preset.
-5. Debug: the **A button** (or **Tab** on desktop) cycles through the rooms.
+5. Debug controls (debug builds only, off in release exports):
+
+   | Action | Quest | Desktop simulator |
+   |---|---|---|
+   | Move (relative to where you look) | left stick | W A S D |
+   | Snap turn 30 degrees | right stick left/right | left/right arrows |
+   | Cycle rooms | A button | Tab |
+
+   Joystick movement is for testing without walking. It moves the whole play area, so it
+   is logged once per session as `debug_locomotion_used`. Settings (speed, snap angle,
+   smooth turn) are on the `DebugLocomotion` node in `core/xr_rig/xr_origin_3D.tscn`.
 
 ## Structure
 
@@ -29,7 +41,7 @@ Team: Ahmed, Dario, Narmeen, Sofia. Plan and schedule: see the shared project pl
 | `core/room_manager.gd` | Autoload `RoomManager`: one active room at a time | A |
 | `core/event_logger.gd` | Autoload `EventLogger`: CSV log per session | D |
 | `core/play_area.gd` | `PlayArea`: 2.5 x 2.5 m size, boundary test, stride gain | A |
-| `core/xr_rig/` | XR origin, hands, `StrideScaler`, `BoundaryMonitor` | A |
+| `core/xr_rig/` | XR origin, hands, `StrideScaler`, `BoundaryMonitor`, `DebugLocomotion` | A |
 | `rooms/room.gd` + `room_XX.tscn` | `Room` contract and room scenes | C |
 | `connectors/connector.gd` | `Connector` base class + `Technique` enum | A |
 | `connectors/portal.gd` | `Portal` (crossing works, preview is TODO) | B |
@@ -70,6 +82,7 @@ godot --headless --xr-mode off -s tests/smoke_test.gd   # exit code = failed che
 
 ## Git workflow
 
+- Update `TEAM_SYNC.md` (status row + changelog line) with every push.
 - `main` always builds and runs on the Quest.
 - One branch per feature, one teammate reviews before merge.
 - One owner per `.tscn` file; pull before every session.

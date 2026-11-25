@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://ba7e3ouo1f0ad" path="res://core/xr_rig/left_hand.gd" id="3_ogfmo"]
 [ext_resource type="Script" path="res://core/xr_rig/stride_scaler.gd" id="4_stride"]
 [ext_resource type="Script" path="res://core/xr_rig/boundary_monitor.gd" id="5_bound"]
+[ext_resource type="Script" path="res://core/xr_rig/debug_locomotion.gd" id="6_debugloco"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_t7gxb"]
 radius = 0.1
@@ -58,6 +59,9 @@ script = ExtResource("4_stride")
 
 [node name="BoundaryMonitor" type="Node" parent="."]
 script = ExtResource("5_bound")
+
+[node name="DebugLocomotion" type="Node" parent="."]
+script = ExtResource("6_debugloco")
 
 [node name="HeadArea" type="Area3D" parent="XRCamera3D" groups=["player"]]
 

@@ -70,5 +70,32 @@ func _initialize() -> void:
 	_check(rm.current_room == room02, "portal crossing activates to_room")
 	_check(rm.current_technique == 0, "technique is PORTAL")
 
+	# Debug joystick locomotion (stick input fed through the XR simulator's trackers)
+	portal.queue_free()
+	var left_tracker := XRServer.get_tracker(&"left_hand") as XRPositionalTracker
+	var right_tracker := XRServer.get_tracker(&"right_hand") as XRPositionalTracker
+	_check(left_tracker != null and right_tracker != null, "controller trackers exist")
+	if left_tracker != null and right_tracker != null:
+		cam.position = Vector3(0.0, 1.7, 0.0)
+		await _wait_physics()
+		var start := cam.global_position
+		var forward := Vector3(-cam.global_basis.z.x, 0.0, -cam.global_basis.z.z).normalized()
+		left_tracker.set_input("primary", Vector2(0.0, 1.0))
+		await _wait_physics(30)
+		left_tracker.set_input("primary", Vector2.ZERO)
+		await _wait_physics()
+		var moved := (cam.global_position - start).dot(forward)
+		_check(moved > 0.5 and moved < 1.0, "left stick moves forward (%.2f m in 0.5 s)" % moved)
+
+		var yaw_before := cam.global_basis.get_euler().y
+		var pos_before := cam.global_position
+		right_tracker.set_input("primary", Vector2(1.0, 0.0))
+		await _wait_physics(10)
+		right_tracker.set_input("primary", Vector2.ZERO)
+		await _wait_physics()
+		var turned := rad_to_deg(angle_difference(yaw_before, cam.global_basis.get_euler().y))
+		_check(is_equal_approx(snappedf(turned, 0.1), -30.0), "right stick snap-turns once (%.1f deg)" % turned)
+		_check(cam.global_position.distance_to(pos_before) < 0.01, "snap turn pivots around the head")
+
 	print("\n%d failure(s)" % _failures)
 	quit(_failures)

@@ -33,6 +33,12 @@ func recalibrate() -> void:
 	_base = _origin.global_transform
 
 
+## Move the calibrated base by a world-space transform (used by DebugLocomotion).
+## The current stride offset is reapplied on top in the next physics frame.
+func transform_base(t: Transform3D) -> void:
+	_base = t * _base
+
+
 func _physics_process(_delta: float) -> void:
 	var room := RoomManager.current_room
 	if not enabled or room == null or _camera == null:
@@ -40,4 +46,4 @@ func _physics_process(_delta: float) -> void:
 	var g := room.stride_gain.min(Vector2(max_gain, max_gain))
 	var p := _camera.position
 	var offset := Vector3((g.x - 1.0) * p.x, 0.0, (g.y - 1.0) * p.z)
-	_origin.global_position = _base.origin + _base.basis * offset
+	_origin.global_transform = Transform3D(_base.basis, _base.origin + _base.basis * offset)
