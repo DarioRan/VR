@@ -1,0 +1,37 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tests/room_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" path="res://core/xr_rig/xr_origin_3D.tscn" id="2_rig"]
+[ext_resource type="PackedScene" path="res://rooms/office.tscn" id="3_room"]
+
+[sub_resource type="Environment" id="Environment_preview"]
+background_mode = 1
+background_color = Color(0.16, 0.18, 0.22, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.8, 0.8, 0.85, 1)
+ambient_light_energy = 0.6
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_playarea"]
+size = Vector2(2.5, 2.5)
+
+[sub_resource type="StandardMaterial3D" id="Material_playarea"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.2, 0.85, 1, 0.18)
+
+[node name="RoomPreview" type="Node3D"]
+script = ExtResource("1_preview")
+room_scene = ExtResource("3_room")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_preview")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 4, 0)
+
+[node name="XROrigin3D" parent="." instance=ExtResource("2_rig")]
+
+[node name="PlayAreaOutline" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("PlaneMesh_playarea")
+surface_material_override/0 = SubResource("Material_playarea")

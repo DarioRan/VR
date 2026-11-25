@@ -160,6 +160,10 @@ Weekends are buffer only.
 
 Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket IDs.
 
+- 2026-11-25, Dario: office greybox (`rooms/office.tscn`) on the plan's blueprint: zone
+  1.75 x 1.75 m, doors N1 -> hallway and E2 <- bedroom, desk west wall, `SafeSlot` in the SW
+  corner. `tests/room_preview.tscn` shows one room with the rig (until RoomSandbox exists).
+  Branch `feature/office-room`.
 - 2026-11-25, Ahmed: added the project plan and all tickets (SET, A, B, C, D, ALL) to this file.
 - 2026-11-25, Ahmed: project skeleton in `impossible-spaces/` from `basic-xr-scene`.
   Autoloads `RoomManager` and `EventLogger`; `Room`, `Connector`, `Portal`, `Corridor`,
@@ -192,7 +196,7 @@ All rooms are centred on the 2.5 x 2.5 m play area. Stride gain = room size / 2.
 | | Kitchen | | | | | to design |
 | | Bedroom | | | | | to design |
 | | Bathroom | | | | | to design |
-| | Office | | | | | to design |
+| office | Office | 1.75 x 1.75 | 1 x 1 | hallway (N1), bedroom (E2) | desk W wall, safe SW corner (P2, pieces 6-7) | greybox |
 | hub | Central hub (hub layout only) | 2.5 x 2.5 | 1 x 1 | 3+ rooms | | to design |
 
 ### Layouts (same rooms, different connections)

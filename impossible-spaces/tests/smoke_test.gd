@@ -97,5 +97,40 @@ func _initialize() -> void:
 		_check(is_equal_approx(snappedf(turned, 0.1), -30.0), "right stick snap-turns once (%.1f deg)" % turned)
 		_check(cam.global_position.distance_to(pos_before) < 0.01, "snap turn pivots around the head")
 
+	await _check_office(main, rm)
+
 	print("\n%d failure(s)" % _failures)
+
+
+## Office greybox: contract, door markers on the blueprint slots, doors open, paths clear.
+func _check_office(main: Node3D, rm: Node) -> void:
+	var office: Node3D = load("res://rooms/office.tscn").instantiate()
+	main.add_child(office)
+	rm.activate(&"office")
+	await _wait_physics(3)
+
+	_check(rm.current_room == office and office.stride_gain == Vector2.ONE, "office registers, gain 1")
+	var n1: Marker3D = office.get_door(&"hallway")
+	var e2: Marker3D = office.get_door(&"bedroom")
+	_check(n1 != null and n1.position.is_equal_approx(Vector3(-0.8, 0, -0.5)) and n1.get_meta(&"slot") == "N1",
+		"Door_hallway on slot N1")
+	_check(e2 != null and e2.position.is_equal_approx(Vector3(0.5, 0, 0.85)) and e2.get_meta(&"slot") == "E2",
+		"Door_bedroom on slot E2")
+	# Door markers face out of the room (-Z of the marker): N1 north, E2 east.
+	_check((-n1.basis.z).is_equal_approx(Vector3.FORWARD) and (-e2.basis.z).is_equal_approx(Vector3.RIGHT),
+		"door markers face out of the room")
+	var safe: Marker3D = office.get_node("SafeSlot")
+	_check((-safe.basis.z).is_equal_approx(Vector3.RIGHT), "safe slot faces into the room (east)")
+
+	# Rays at chest height: through each door from the band into the room, and through a wall.
+	var space := main.get_world_3d().direct_space_state
+	var hit := func(from: Vector3, to: Vector3) -> bool:
+		return not space.intersect_ray(PhysicsRayQueryParameters3D.create(from, to)).is_empty()
+	_check(not hit.call(Vector3(-0.8, 1.2, -0.9), Vector3(-0.8, 1.2, 0.2)), "N1 opening is walkable")
+	_check(not hit.call(Vector3(0.9, 1.2, 0.85), Vector3(-0.2, 1.2, 0.85)), "E2 opening is walkable")
+	_check(hit.call(Vector3(0.0, 1.2, -0.9), Vector3(0.0, 1.2, 0.2)), "north wall is solid beside N1")
+	# 0.75 m clear inside each door (knee height, where the desk would be).
+	_check(not hit.call(Vector3(-1.175, 0.4, -0.45), Vector3(-1.175, 0.4, 0.25)), "path from N1 clear of the desk")
+	_check(not hit.call(Vector3(0.45, 0.4, 0.85), Vector3(-0.25, 0.4, 0.85)), "path from E2 clear")
+	office.queue_free()
 	quit(_failures)
