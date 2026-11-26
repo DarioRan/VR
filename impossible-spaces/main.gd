@@ -9,6 +9,7 @@ extends Node3D
 func _ready() -> void:
 	# Rooms registered themselves in their own _ready(), which runs before this one.
 	RoomManager.activate(start_room)
+	($XROrigin3D/StrideScaler as StrideScaler).footprint = $PlayAreaOutline
 	_right_hand.button_pressed.connect(_on_right_button_pressed)
 
 
