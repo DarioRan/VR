@@ -2,8 +2,9 @@ class_name OfficeSafe
 extends Node3D
 ## P2: the office safe (plan "Escape mode" and "Cross-room flags"). Owner: D (Dario).
 ##
-## A floor safe with a keypad. The right code opens the door; painting pieces
-## 6 and 7 are inside (PieceSlot6/7 until Piece.tscn exists).
+## A floor safe with a keypad. The right code opens the door; the office's
+## painting piece is inside (PieceSlot until Piece.tscn exists). In Sofia's lobby
+## plan the safe stands at the end of the office lane, facing the player.
 ## The code is on a note in the office for now (code_clue.gd); later one digit is
 ## seen only through Ahmed's portal window.
 ##
@@ -31,7 +32,7 @@ const KEY_SIZE := Vector3(0.045, 0.04, 0.015)
 const KEY_PITCH := Vector2(0.06, 0.05)
 ## The hand has to pull back this far past touching before it can press again.
 const RELEASE_MARGIN := 0.03
-## Opens towards the player's left. In the office that is the south wall: past 90 it clips.
+## Opens towards the player's left, flat against the side, clear of the lane.
 const OPEN_ANGLE_DEG := -90.0
 const COLOR_IDLE := Color(0.55, 1.0, 0.6)
 const COLOR_ERR := Color(1.0, 0.3, 0.25)

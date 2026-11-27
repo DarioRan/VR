@@ -160,6 +160,15 @@ Weekends are buffer only.
 
 Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket IDs.
 
+- 2026-11-27, Dario: safe moved to the end of the office lane, facing south; one piece slot
+  (`PieceSlot`) instead of pieces 6-7 (Sofia's one-piece-per-room flow); opening the safe opens
+  the office return portal until piece pickup exists. Code note above the desk.
+  Branch `feature/office-safe`.
+- 2026-11-27, Dario: office redone on Sofia's lobby plan (Lobby-North-Doors, 25 Nov):
+  2.0 x 1.65 m north of the lobby strip, one lane from `Door_lobby` (0, +0.45) to the safe at
+  the north end (0, -1.0), freestanding one-way `ReturnPortal` at z -0.17 (closed until
+  `open_return_portal()`), desk west wall, shelf east wall. Preview scene shows the lobby strip.
+  Branch `feature/office-room`.
 - 2026-11-25, Dario: P2 office safe v0 (`extension/puzzles/office_safe/`): keypad pressed by
   touching keys with the hand spheres, code 4719 on a note on the office west wall (static
   stand-in for the portal window), door opens, pieces 6-7 slots inside. Branch
@@ -179,6 +188,10 @@ Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket I
 
 Any change to a shared API, signal, scene structure or project setting. Say who is affected.
 
+- 2026-11-27, Dario: the office expects a room with id `lobby` (door `Door_lobby`, return
+  portal `to_room = &"lobby"`). The return portal is a normal `Portal` kept disabled
+  (`process_mode`) until `office.open_return_portal()`; whoever builds piece pickup calls it.
+  Affects: lobby owner, B (portals), pieces.
 - 2026-11-25, Dario: new log event `code_entered` {"id", "ok", "entry"} on every keypad OK;
   the safe also logs `puzzle_solved` {"id": "P2"} itself until PuzzleState does it.
   Narmeen's modulus lock can reuse `code_entered` with id "exit". Affects: A (Narmeen), D.
@@ -203,7 +216,7 @@ All rooms are centred on the 2.5 x 2.5 m play area. Stride gain = room size / 2.
 | | Kitchen | | | | | to design |
 | | Bedroom | | | | | to design |
 | | Bathroom | | | | | to design |
-| office | Office | 1.75 x 1.75 | 1 x 1 | hallway (N1), bedroom (E2) | desk W wall, safe SW corner (P2, pieces 6-7) | greybox |
+| office | Office | 2.0 x 1.65 | 1 x 1 | lobby (south door on the lane); return portal -> lobby | desk W wall, shelf E wall, safe at the lane end (P2) | greybox |
 | hub | Central hub (hub layout only) | 2.5 x 2.5 | 1 x 1 | 3+ rooms | | to design |
 
 ### Layouts (same rooms, different connections)
@@ -246,6 +259,10 @@ What we agreed on, so nobody has to ask again.
 
 Anything stopping you, or a question for the group. Remove it when solved.
 
+- Dario: Sofia's two sheets disagree. Apartment plan: office, bedroom, kitchen off the lobby,
+  bathroom via bedroom (C1), living room via kitchen (C2). Lobby-North-Doors: no office,
+  doors bedroom / kitchen / living room, bathroom via living room (C1). Which is final, and
+  which lobby door leads to the office? The office follows the lane pattern either way.
 - 2026-11-25, Dario: PuzzleState API for the starter kit: the safe calls
   `PuzzleState.set_flag(&"safe_open", true)` if that method exists. OK with that name?
   And who logs `puzzle_solved`: each puzzle, or PuzzleState?

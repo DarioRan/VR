@@ -97,42 +97,61 @@ func _initialize() -> void:
 		_check(is_equal_approx(snappedf(turned, 0.1), -30.0), "right stick snap-turns once (%.1f deg)" % turned)
 		_check(cam.global_position.distance_to(pos_before) < 0.01, "snap turn pivots around the head")
 
-	await _check_office(main, rm)
+	await _check_office(main, rm, cam)
 
 	print("\n%d failure(s)" % _failures)
+	quit(_failures)
 
 
-## Office greybox: contract, door markers on the blueprint slots, doors open, paths clear.
-func _check_office(main: Node3D, rm: Node) -> void:
+## Office (Sofia's lobby plan): one lane from the lobby door north to the safe, a
+## freestanding one-way return portal that opens after the pickup.
+func _check_office(main: Node3D, rm: Node, cam: XRCamera3D) -> void:
 	var office: Node3D = load("res://rooms/office.tscn").instantiate()
 	main.add_child(office)
 	rm.activate(&"office")
 	await _wait_physics(3)
 
 	_check(rm.current_room == office and office.stride_gain == Vector2.ONE, "office registers, gain 1")
-	var n1: Marker3D = office.get_door(&"hallway")
-	var e2: Marker3D = office.get_door(&"bedroom")
-	_check(n1 != null and n1.position.is_equal_approx(Vector3(-0.8, 0, -0.5)) and n1.get_meta(&"slot") == "N1",
-		"Door_hallway on slot N1")
-	_check(e2 != null and e2.position.is_equal_approx(Vector3(0.5, 0, 0.85)) and e2.get_meta(&"slot") == "E2",
-		"Door_bedroom on slot E2")
-	# Door markers face out of the room (-Z of the marker): N1 north, E2 east.
-	_check((-n1.basis.z).is_equal_approx(Vector3.FORWARD) and (-e2.basis.z).is_equal_approx(Vector3.RIGHT),
-		"door markers face out of the room")
-	var safe: Marker3D = office.get_node("SafeSlot")
-	_check((-safe.basis.z).is_equal_approx(Vector3.RIGHT), "safe slot faces into the room (east)")
+	var door: Marker3D = office.get_door(&"lobby")
+	_check(door != null and door.position.is_equal_approx(Vector3(0, 0, 0.45))
+		and (-door.basis.z).is_equal_approx(Vector3.BACK), "Door_lobby on the lane, facing out (south)")
+	var slot: Marker3D = office.get_node("SafeSlot")
+	_check(slot.position.is_equal_approx(Vector3(0, 0, -1)) and (-slot.basis.z).is_equal_approx(Vector3.BACK),
+		"safe slot at the north end of the lane, facing south")
+	# The whole lane (door to safe front) stays inside the play area minus the boundary margin.
+	var play_area: GDScript = load("res://core/play_area.gd")
+	var lane_ok := true
+	for p: Vector3 in [Vector3(-0.375, 0, 0.45), Vector3(0.375, 0, -0.8)]:
+		lane_ok = lane_ok and play_area.is_inside(p)
+	_check(lane_ok, "lane inside the safe play area")
 
-	# Rays at chest height: through each door from the band into the room, and through a wall.
+	# Rays: through the door, through the south wall beside it, and along both lane edges.
 	var space := main.get_world_3d().direct_space_state
 	var hit := func(from: Vector3, to: Vector3) -> bool:
 		return not space.intersect_ray(PhysicsRayQueryParameters3D.create(from, to)).is_empty()
-	_check(not hit.call(Vector3(-0.8, 1.2, -0.9), Vector3(-0.8, 1.2, 0.2)), "N1 opening is walkable")
-	_check(not hit.call(Vector3(0.9, 1.2, 0.85), Vector3(-0.2, 1.2, 0.85)), "E2 opening is walkable")
-	_check(hit.call(Vector3(0.0, 1.2, -0.9), Vector3(0.0, 1.2, 0.2)), "north wall is solid beside N1")
-	# 0.75 m clear inside each door (knee height, where the desk would be).
-	_check(not hit.call(Vector3(-1.175, 0.4, -0.45), Vector3(-1.175, 0.4, 0.25)), "path from N1 clear of the desk")
-	_check(not hit.call(Vector3(0.45, 0.4, 0.85), Vector3(-0.25, 0.4, 0.85)), "path from E2 clear")
+	_check(not hit.call(Vector3(0, 1.2, 0.9), Vector3(0, 1.2, 0.0)), "lobby door is walkable")
+	_check(hit.call(Vector3(0.7, 1.2, 0.9), Vector3(0.7, 1.2, 0.0)), "south wall is solid beside the door")
+	_check(not hit.call(Vector3(-0.37, 0.4, 0.4), Vector3(-0.37, 0.4, -0.78))
+		and not hit.call(Vector3(0.37, 0.4, 0.4), Vector3(0.37, 0.4, -0.78)), "lane is clear up to the safe")
+
+	# Return portal: walking south through it does nothing while closed, goes to the lobby once open.
+	var lobby: Node3D = load("res://rooms/room.gd").new()
+	lobby.room_id = &"lobby"
+	main.add_child(lobby)
+	var walk_south := func() -> void:
+		cam.global_position = Vector3(0, 1.7, -0.5)
+		await _wait_physics()
+		cam.global_position = Vector3(0, 1.7, 0.1)
+		await _wait_physics()
+	await walk_south.call()
+	_check(rm.current_room == office and not office.get_node("ReturnPortal/Surface").visible,
+		"closed return portal does nothing")
 	await _check_safe(main, office)
+	_check(office.return_portal_open, "opening the safe opens the return portal")
+	await walk_south.call()
+	_check(rm.current_room == lobby and rm.current_technique == 0, "open return portal leads south to the lobby")
+	rm.activate(&"office")
+	lobby.queue_free()
 	office.queue_free()
 
 
@@ -175,15 +194,14 @@ func _check_safe(main: Node3D, office: Node3D) -> void:
 	var solved := [false]
 	safe.solved.connect(func() -> void: solved[0] = true)
 	var door: Node3D = safe.get_node("DoorHinge/Door")
-	var closed_x := door.global_position.x
+	var closed_pos := door.global_position
 	for ch: String in safe.code:
 		safe.press(ch)
 	safe.press("OK")
 	await create_timer(1.5).timeout
 	_check(safe.is_open and solved[0] and results == [false, true], "right code opens the safe")
-	_check(door.global_position.x > closed_x + 0.1,
-		"door swings out into the room (x %.2f -> %.2f)" % [closed_x, door.global_position.x])
+	var swing := (door.global_position - closed_pos).dot(-safe.global_basis.z)
+	_check(swing > 0.1, "door swings out towards the player (%.2f m)" % swing)
 	var log_text := FileAccess.get_file_as_string(root.get_node("EventLogger").file_path)
 	_check(log_text.contains("code_entered") and log_text.contains("puzzle_solved"),
 		"code_entered and puzzle_solved are logged")
-	quit(_failures)

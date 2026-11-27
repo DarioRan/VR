@@ -36,7 +36,7 @@ size = Vector3(0.12, 0.12, 0.01)
 [node name="OfficeSafe" type="Node3D"]
 script = ExtResource("1_safe")
 editor_description = "P2 office safe (owner: Dario). Origin on the floor at the centre of the footprint.
-Front faces -Z. 0.4 x 1.0 x 0.4 m. Keypad at 0.7 m, display at 0.9 m, door and pieces below.
+Front faces -Z. 0.4 x 1.0 x 0.4 m. Keypad at 0.7 m, display at 0.9 m, door and the piece below.
 Set the code on the root node (exported 'code')."
 
 [node name="Body" type="CSGCombiner3D" parent="."]
@@ -74,14 +74,8 @@ text = "_ _ _ _"
 font_size = 96
 outline_size = 0
 
-[node name="PieceSlot6" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0.16, 0.02)
+[node name="PieceSlot" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.17, 0.02)
 
-[node name="Placeholder" type="MeshInstance3D" parent="PieceSlot6"]
-mesh = SubResource("Mesh_piece")
-
-[node name="PieceSlot7" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0.16, 0.02)
-
-[node name="Placeholder" type="MeshInstance3D" parent="PieceSlot7"]
+[node name="Placeholder" type="MeshInstance3D" parent="PieceSlot"]
 mesh = SubResource("Mesh_piece")
