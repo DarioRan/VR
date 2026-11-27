@@ -160,6 +160,11 @@ Weekends are buffer only.
 
 Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket IDs.
 
+- 2026-11-27, Dario: office redone on Sofia's lobby plan (Lobby-North-Doors, 25 Nov):
+  2.0 x 1.65 m north of the lobby strip, one lane from `Door_lobby` (0, +0.45) to the safe at
+  the north end (0, -1.0), freestanding one-way `ReturnPortal` at z -0.17 (closed until
+  `open_return_portal()`), desk west wall, shelf east wall. Preview scene shows the lobby strip.
+  Branch `feature/office-room`.
 - 2026-11-25, Dario: office greybox (`rooms/office.tscn`) on the plan's blueprint: zone
   1.75 x 1.75 m, doors N1 -> hallway and E2 <- bedroom, desk west wall, `SafeSlot` in the SW
   corner. `tests/room_preview.tscn` shows one room with the rig (until RoomSandbox exists).
@@ -175,6 +180,10 @@ Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket I
 
 Any change to a shared API, signal, scene structure or project setting. Say who is affected.
 
+- 2026-11-27, Dario: the office expects a room with id `lobby` (door `Door_lobby`, return
+  portal `to_room = &"lobby"`). The return portal is a normal `Portal` kept disabled
+  (`process_mode`) until `office.open_return_portal()`; whoever builds piece pickup calls it.
+  Affects: lobby owner, B (portals), pieces.
 - 2026-11-25, Ahmed: names differ from the plan doc: `EventLogger` (not `Logger`, which is
   a built-in Godot class) and `RoomManager.prepare_room()` (not `preload()`, a GDScript keyword).
   Affects: everyone.
@@ -196,7 +205,7 @@ All rooms are centred on the 2.5 x 2.5 m play area. Stride gain = room size / 2.
 | | Kitchen | | | | | to design |
 | | Bedroom | | | | | to design |
 | | Bathroom | | | | | to design |
-| office | Office | 1.75 x 1.75 | 1 x 1 | hallway (N1), bedroom (E2) | desk W wall, safe SW corner (P2, pieces 6-7) | greybox |
+| office | Office | 2.0 x 1.65 | 1 x 1 | lobby (south door on the lane); return portal -> lobby | desk W wall, shelf E wall, safe at the lane end (P2) | greybox |
 | hub | Central hub (hub layout only) | 2.5 x 2.5 | 1 x 1 | 3+ rooms | | to design |
 
 ### Layouts (same rooms, different connections)
@@ -239,7 +248,10 @@ What we agreed on, so nobody has to ask again.
 
 Anything stopping you, or a question for the group. Remove it when solved.
 
--
+- Dario: Sofia's two sheets disagree. Apartment plan: office, bedroom, kitchen off the lobby,
+  bathroom via bedroom (C1), living room via kitchen (C2). Lobby-North-Doors: no office,
+  doors bedroom / kitchen / living room, bathroom via living room (C1). Which is final, and
+  which lobby door leads to the office? The office follows the lane pattern either way.
 
 ## Integration day checklist (Tue 1 Dec, Fri 4 Dec)
 
