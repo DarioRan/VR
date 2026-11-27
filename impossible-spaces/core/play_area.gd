@@ -26,3 +26,10 @@ static func stride_gain_for(room_size: Vector2, cap: float = 2.0) -> Vector2:
 		clampf(room_size.x / SIZE.x, 1.0, cap),
 		clampf(room_size.y / SIZE.y, 1.0, cap)
 	)
+
+
+## Distance from a point to the nearest edge of the square (metres).
+## Positive inside, negative outside.
+static func distance_to_edge(local_pos: Vector3) -> float:
+	var h := half_extents()
+	return minf(h.x - absf(local_pos.x), h.y - absf(local_pos.z))

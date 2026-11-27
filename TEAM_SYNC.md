@@ -24,7 +24,7 @@ Team: Ahmed, Dario, Narmeen, Sofia.
 
 | Role | Owner | Working on now (ticket) | Next | Blocked by |
 |---|---|---|---|---|
-| A. XR platform and locomotion | (assign) | | | |
+| A. XR platform and locomotion | Ahmed | A-01 to A-09 on branch `feature/a-xr-platform` | Test on the Quest, merge | needs headset time |
 | B. Portals and rendering | (assign) | | | |
 | C. Rooms, corridors and hub | (assign) | | | |
 | D. Tour, puzzles and data | (assign) | | | |
@@ -80,15 +80,15 @@ Weekends are buffer only.
 
 | ID | Ticket | Owner | Due | P | Status |
 |---|---|---|---|---|---|
-| A-01 | XR rig on the Quest: controllers, hands, recenter onto the taped square (then `StrideScaler.recalibrate()`) | A | 27 Nov | Must | v0 |
+| A-01 | XR rig on the Quest: controllers, sphere hands, hold-to-recenter on the taped square, refresh rate | A | 27 Nov | Must | v0 |
 | A-02 | RoomManager v1: one active room, `prepare_room`, enter/exit signals | A | 30 Nov | Must | v0 |
 | A-03 | Stride scaling per room, tested on the headset | A | 2 Dec | Must | v0 |
-| A-04 | Smooth the view jump when the stride gain changes at a room swap | A | 3 Dec | Should | todo |
+| A-04 | Hide the view jump when the stride gain changes at a room swap (fade to black) | A | 3 Dec | Should | v0 |
 | A-05 | Boundary-hit detection and logging | A | 3 Dec | Must | v0 |
-| A-06 | Boundary warning: fade the view near the edge | A | 3 Dec | Should | todo |
-| A-07 | Stride gain setting for the pilot (1.25 / 1.5 / 2.0) | A | 7 Dec | Should | todo |
-| A-08 | Performance pass: steady 72 Hz on the Quest | A | 7 Dec | Must | todo |
-| A-09 | Release build script, final APK, tag `v1.0` (**M4**) | A | 9 Dec | Must | todo |
+| A-06 | Boundary warning: darken the view near the edge | A | 3 Dec | Should | v0 |
+| A-07 | Stride gain cap for the pilot (1.25 / 1.5 / 2.0, left Y button), logged | A | 7 Dec | Should | v0 |
+| A-08 | Performance: 72 Hz, physics at display rate, foveation, MSAA 2x, `PerfMonitor` log; verify on the Quest | A | 7 Dec | Must | v0 |
+| A-09 | Build script `scripts/build_quest.sh`, final APK, tag `v1.0` (**M4**) | A | 9 Dec | Must | v0 |
 
 ### B. Portals and rendering
 
@@ -177,6 +177,10 @@ Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket I
   1.75 x 1.75 m, doors N1 -> hallway and E2 <- bedroom, desk west wall, `SafeSlot` in the SW
   corner. `tests/room_preview.tscn` shows one room with the rig (until RoomSandbox exists).
   Branch `feature/office-room`.
+- 2026-11-25, Ahmed: A-01 to A-09 on branch `feature/a-xr-platform`: hold-to-recenter,
+  72 Hz + physics rate, foveation, MSAA 2x, `ScreenFade` (boundary warning + fade on gain
+  jumps), gain-cap presets, play-area footprint, `PerfMonitor`, `scripts/build_quest.sh`,
+  hands fixed (spheres were stretched to 1 m tall). Smoke test: 23 checks. Needs a Quest test.
 - 2026-11-25, Ahmed: added the project plan and all tickets (SET, A, B, C, D, ALL) to this file.
 - 2026-11-25, Ahmed: project skeleton in `impossible-spaces/` from `basic-xr-scene`.
   Autoloads `RoomManager` and `EventLogger`; `Room`, `Connector`, `Portal`, `Corridor`,
@@ -195,6 +199,13 @@ Any change to a shared API, signal, scene structure or project setting. Say who 
 - 2026-11-25, Dario: new log event `code_entered` {"id", "ok", "entry"} on every keypad OK;
   the safe also logs `puzzle_solved` {"id": "P2"} itself until PuzzleState does it.
   Narmeen's modulus lock can reuse `code_entered` with id "exit". Affects: A (Narmeen), D.
+- 2026-11-25, Ahmed: `StrideScaler.recalibrate()` is gone; recentering is
+  `XROrigin3D.recenter()` (signal `recentered`), which also calls `StrideScaler.reset_base()`.
+  New `ScreenFade` under `XRCamera3D`: use `flash()` to hide any jump (B: portal alignment).
+  Affects: B, D.
+- 2026-11-25, Ahmed: project settings: foveation high + dynamic, MSAA 3D 2x. The physics rate
+  follows the headset refresh rate (72 Hz). Affects: everyone.
+
 - 2026-11-25, Ahmed: names differ from the plan doc: `EventLogger` (not `Logger`, which is
   a built-in Godot class) and `RoomManager.prepare_room()` (not `preload()`, a GDScript keyword).
   Affects: everyone.

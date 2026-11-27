@@ -6,12 +6,15 @@
 [ext_resource type="Script" path="res://core/xr_rig/stride_scaler.gd" id="4_stride"]
 [ext_resource type="Script" path="res://core/xr_rig/boundary_monitor.gd" id="5_bound"]
 [ext_resource type="Script" path="res://core/xr_rig/debug_locomotion.gd" id="6_debugloco"]
+[ext_resource type="Script" path="res://core/xr_rig/screen_fade.gd" id="7_fade"]
+[ext_resource type="Script" path="res://core/xr_rig/perf_monitor.gd" id="8_perf"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_t7gxb"]
-radius = 0.1
+radius = 0.05
+height = 0.1
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_345on"]
-radius = 0.1
+radius = 0.05
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cq8vx"]
 height = 1.7
@@ -54,11 +57,13 @@ shape = SubResource("SphereShape3D_345on")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_cq8vx")
 
-[node name="StrideScaler" type="Node" parent="."]
+[node name="StrideScaler" type="Node" parent="." node_paths=PackedStringArray("screen_fade")]
 script = ExtResource("4_stride")
+screen_fade = NodePath("../XRCamera3D/ScreenFade")
 
-[node name="BoundaryMonitor" type="Node" parent="."]
+[node name="BoundaryMonitor" type="Node" parent="." node_paths=PackedStringArray("screen_fade")]
 script = ExtResource("5_bound")
+screen_fade = NodePath("../XRCamera3D/ScreenFade")
 
 [node name="DebugLocomotion" type="Node" parent="."]
 script = ExtResource("6_debugloco")
@@ -67,3 +72,9 @@ script = ExtResource("6_debugloco")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="XRCamera3D/HeadArea"]
 shape = SubResource("SphereShape3D_345on")
+
+[node name="ScreenFade" type="MeshInstance3D" parent="XRCamera3D"]
+script = ExtResource("7_fade")
+
+[node name="PerfMonitor" type="Node" parent="."]
+script = ExtResource("8_perf")
