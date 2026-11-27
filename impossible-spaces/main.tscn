@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dfi7vnlobngns"]
 
-[ext_resource type="Script" path="res://main.gd" id="1_main"]
-[ext_resource type="PackedScene" path="res://core/xr_rig/xr_origin_3D.tscn" id="2_rig"]
+[ext_resource type="Script" uid="uid://dx7otj3bvw7r7" path="res://main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://cs84qhhybe7i2" path="res://core/xr_rig/xr_origin_3D.tscn" id="2_rig"]
 [ext_resource type="PackedScene" path="res://rooms/room_01.tscn" id="3_room01"]
 [ext_resource type="PackedScene" path="res://rooms/room_02.tscn" id="4_room02"]
 
@@ -20,24 +20,24 @@ transparency = 1
 shading_mode = 0
 albedo_color = Color(0.2, 0.85, 1, 0.18)
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=1923629538]
 script = ExtResource("1_main")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=135358913]
 environment = SubResource("Environment_main")
 
-[node name="Sun" type="DirectionalLight3D" parent="."]
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=676483344]
 transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 4, 0)
 
-[node name="XROrigin3D" parent="." instance=ExtResource("2_rig")]
+[node name="XROrigin3D" parent="." unique_id=462332312 instance=ExtResource("2_rig")]
 
-[node name="PlayAreaOutline" type="MeshInstance3D" parent="."]
+[node name="PlayAreaOutline" type="MeshInstance3D" parent="." unique_id=1995085658]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
 mesh = SubResource("PlaneMesh_playarea")
 surface_material_override/0 = SubResource("Material_playarea")
 
-[node name="Rooms" type="Node3D" parent="."]
+[node name="Rooms" type="Node3D" parent="." unique_id=787635220]
 
-[node name="Room01" parent="Rooms" instance=ExtResource("3_room01")]
+[node name="Room01" parent="Rooms" unique_id=2117773149 instance=ExtResource("3_room01")]
 
-[node name="Room02" parent="Rooms" instance=ExtResource("4_room02")]
+[node name="Room02" parent="Rooms" unique_id=1704498320 instance=ExtResource("4_room02")]
