@@ -2,10 +2,12 @@ extends Node
 ## Autoload "DebugHud" (plan D-02). Owner: D (Dario). Debug builds only.
 ##
 ## A small text panel fixed in the lower-left of the view:
-## room and stride gain, technique, fps, distance to the play-area edge, participant.
+## room and stride gain (applied gain and the pilot cap), technique, fps,
+## distance to the play-area edge, participant.
 ## It turns red when the head is within the boundary margin.
 ##
-## Toggle: Y on the left controller. Desktop: H (or hold Q + 1 in the XR simulator).
+## Toggle: X on the left controller (Y is the stride cap, A-07). Desktop: H
+## (or hold Q + 2 in the XR simulator).
 ## It attaches itself to the active camera, so it works in any scene
 ## (main, the room sandbox...) without editing the rig.
 
@@ -16,6 +18,7 @@ extends Node
 const REFRESH_S := 0.25
 const COLOR_OK := Color(1.0, 0.95, 0.55)
 const COLOR_WARN := Color(1.0, 0.35, 0.3)
+const TOGGLE_BUTTON := "ax_button"  # X on the left controller
 
 var _label: Label3D
 var _shown: bool = true
@@ -91,13 +94,18 @@ func _refresh(cam: Camera3D) -> void:
 	var room := RoomManager.current_room
 	var room_text := "-"
 	if room != null:
-		var g := room.stride_gain
-		room_text = "%s  (gain %.2f x %.2f)" % [room.room_id, g.x, g.y]
+		room_text = String(room.room_id)
+		# The gain actually applied (after the cap and the fade) comes from the rig.
+		var stride := cam.get_parent().get_node_or_null(^"StrideScaler") as StrideScaler
+		if stride != null:
+			var g := stride.current_gain
+			room_text += "  (gain %.2f x %.2f, cap %.2f)" % [g.x, g.y, stride.max_gain]
+		else:
+			var g := room.stride_gain
+			room_text += "  (gain %.2f x %.2f)" % [g.x, g.y]
 
 	# Camera position relative to XROrigin3D = position in the taped square.
-	var p := cam.position
-	var h := PlayArea.half_extents()
-	var edge := minf(h.x - absf(p.x), h.y - absf(p.z))
+	var edge := PlayArea.distance_to_edge(cam.position)
 
 	_label.text = "room  %s\ntech  %s\nfps   %d\nedge  %.2f m\npid   %s" % [
 		room_text,
@@ -118,5 +126,5 @@ func _on_tracker_added(tracker_name: StringName, _type: int) -> void:
 
 
 func _on_left_button(button: String) -> void:
-	if button == "by_button":
+	if button == TOGGLE_BUTTON:
 		toggle()

@@ -22,17 +22,34 @@ Team: Ahmed, Dario, Narmeen, Sofia. Plan and schedule: see the shared project pl
 3. Run on desktop (F5): no headset is found, so the XR simulator starts
    (see `addons/xr-simulator` for the controls).
 4. Run on the Quest: plug it in and use the one-click deploy button with the `MetaHeadset` preset.
-5. Debug controls (debug builds only, off in release exports):
+5. **Calibrate** each time you put the headset on: stand in the centre of the taped square,
+   face the front edge, hold the **left menu button** for 1 s (or hold the Meta button).
+6. Controls:
 
    | Action | Quest | Desktop simulator |
    |---|---|---|
-   | Move (relative to where you look) | left stick | W A S D |
-   | Snap turn 30 degrees | right stick left/right | left/right arrows |
-   | Cycle rooms | A button | Tab |
+   | Recenter on the taped square | hold left menu button 1 s (or Meta button) | R |
+   | Cycle stride gain cap 1.25 / 1.5 / 2.0 (pilot) | left Y | G |
+   | Move, debug only (relative to where you look) | left stick | W A S D |
+   | Snap turn 30 degrees, debug only | right stick left/right | left/right arrows |
+   | Cycle rooms, debug only | A button | Tab |
+   | Show / hide the debug HUD, debug only | left X | H |
 
-   Joystick movement is for testing without walking. It moves the whole play area, so it
-   is logged once per session as `debug_locomotion_used`. Settings (speed, snap angle,
-   smooth turn) are on the `DebugLocomotion` node in `core/xr_rig/xr_origin_3D.tscn`.
+   Joystick movement is for testing without walking and is off in release builds. It moves
+   the whole play area, so it is logged once per session as `debug_locomotion_used`.
+   Recentering undoes it. Settings are on the `DebugLocomotion` node in
+   `core/xr_rig/xr_origin_3D.tscn`.
+
+## Building for the Quest
+
+```bash
+export GODOT=/Applications/Godot.app/Contents/MacOS/Godot
+scripts/build_quest.sh debug --install   # build, install and launch
+scripts/build_quest.sh release           # final build (needs the release keystore, see the script)
+```
+
+APKs go to `exports/` (not in git). Quest settings in the project: 72 Hz (physics matched to
+the refresh rate), Stage reference space, high dynamic foveation, 2x MSAA.
 
 ## Structure
 
@@ -41,7 +58,7 @@ Team: Ahmed, Dario, Narmeen, Sofia. Plan and schedule: see the shared project pl
 | `core/room_manager.gd` | Autoload `RoomManager`: one active room at a time | A |
 | `core/event_logger.gd` | Autoload `EventLogger`: CSV log per session | D |
 | `core/play_area.gd` | `PlayArea`: 2.5 x 2.5 m size, boundary test, stride gain | A |
-| `core/xr_rig/` | XR origin, hands, `StrideScaler`, `BoundaryMonitor`, `DebugLocomotion` | A |
+| `core/xr_rig/` | XR origin (recenter, refresh rate), hands, `StrideScaler`, `BoundaryMonitor`, `ScreenFade`, `PerfMonitor`, `DebugLocomotion` | A |
 | `rooms/room.gd` + `room_XX.tscn` | `Room` contract and room scenes | C |
 | `connectors/connector.gd` | `Connector` base class + `Technique` enum | A |
 | `connectors/portal.gd` | `Portal` (crossing works, preview is TODO) | B |
@@ -77,7 +94,7 @@ adb pull /sdcard/Android/data/fr.ubx.impossiblespaces/files/logs/ logs/
 
 ```bash
 cd impossible-spaces
-godot --headless --xr-mode off -s tests/smoke_test.gd   # exit code = failed checks
+godot --headless --xr-mode off -s tests/smoke_test.gd   # 23 checks, exit code = failed checks
 ```
 
 ## Git workflow
@@ -93,6 +110,9 @@ godot --headless --xr-mode off -s tests/smoke_test.gd   # exit code = failed che
 - The autoload is `EventLogger`, not `Logger`: Godot already has a built-in `Logger` class.
 - `prepare_room()` instead of `preload()`: `preload` is a GDScript keyword.
 - Stride scaling maps position absolutely from the calibrated origin, so leaving a scaled
-  room does not shift the next one. Call `StrideScaler.recalibrate()` after recentering.
+  room does not shift the next one. When the gain changes at a room swap and the view would
+  jump more than 5 cm, the screen fades to black for about 0.3 s to hide it.
+- Use `ScreenFade.flash()` (child of `XRCamera3D`) for any other teleport-like change.
+- `PerfMonitor` logs a `perf` event every 5 s (average fps, worst frame, missed frames).
 - Recommended: add the Godot OpenXR Vendors plugin (Meta) from the Asset Library for
   Quest-specific features (passthrough, hand tracking, boundary).
