@@ -33,6 +33,7 @@ Team: Ahmed, Dario, Narmeen, Sofia. Plan and schedule: see the shared project pl
    | Move, debug only (relative to where you look) | left stick | W A S D |
    | Snap turn 30 degrees, debug only | right stick left/right | left/right arrows |
    | Cycle rooms, debug only | A button | Tab |
+   | Show / hide the debug HUD, debug only | left X | H |
 
    Joystick movement is for testing without walking and is off in release builds. It moves
    the whole play area, so it is logged once per session as `debug_locomotion_used`.

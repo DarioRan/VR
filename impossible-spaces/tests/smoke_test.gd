@@ -21,6 +21,19 @@ func _wait_physics(n: int = 2) -> void:
 		await physics_frame
 
 
+## Last row of the current session CSV, split into columns (handles the quoted JSON column).
+func _last_log_row(logger: Node) -> PackedStringArray:
+	var f := FileAccess.open(logger.file_path, FileAccess.READ)
+	if f == null:
+		return PackedStringArray()
+	var row := PackedStringArray()
+	while not f.eof_reached():
+		var r := f.get_csv_line()
+		if r.size() > 1:
+			row = r
+	return row
+
+
 func _initialize() -> void:
 	var main: Node3D = load("res://main.tscn").instantiate()
 	root.add_child(main)
@@ -152,6 +165,63 @@ func _initialize() -> void:
 		await _wait_physics()
 		var back := cam.global_position
 		_check(absf(back.x) < 0.01 and absf(back.z) < 0.01, "recenter resets the play area (head at %s)" % back)
+
+	# EventLogger: room_entered records the connector used, technique column stays the layout's
+	var logger: Node = root.get_node("EventLogger")
+	var corridor: Node3D = load("res://connectors/corridor.gd").new()
+	rm.on_connector_crossed(corridor, rm.current_room.room_id, &"room_01")
+	corridor.free()
+	var row := _last_log_row(logger)
+	_check(row.size() == 8 and row[4] == "room_entered" and row[2] == "PORTAL" and row[7].contains("CORRIDOR"),
+		"room_entered logs via=CORRIDOR, technique column PORTAL (%s)" % [row])
+
+	logger.set_participant(" P07 ")
+	logger.log_event("piece_collected", {"piece_id": 6})
+	row = _last_log_row(logger)
+	_check(row.size() == 8 and row[1] == "P07" and row[3] == "room_01" and row[4] == "piece_collected"
+		and JSON.parse_string(row[7]) == {"piece_id": 6.0},
+		"participant and data written to the CSV (%s)" % [row])
+
+	# DebugHud: attached to the camera, shows room and participant, red near the edge
+	var hud: Node = root.get_node("DebugHud")
+	cam.position = Vector3(0.0, 1.7, 0.0)
+	hud.toggle()
+	hud.toggle()  # off and on again forces a refresh
+	await process_frame
+	await process_frame
+	var label := cam.get_node_or_null("DebugHud") as Label3D
+	_check(label != null and label.visible, "HUD label is attached to the camera")
+	_check(hud.get_text().contains("room_01") and hud.get_text().contains("P07")
+		and hud.get_text().contains("cap 2.00"),
+		"HUD shows room, gain cap and participant (%s)" % hud.get_text().replace("\n", " | "))
+	cam.position = Vector3(1.15, 1.7, 0.0)
+	hud.toggle()
+	hud.toggle()  # off and on again forces a refresh
+	await process_frame
+	await process_frame
+	_check(hud.get_text().contains("edge  0.10 m") and label.modulate == hud.COLOR_WARN,
+		"HUD warns 0.10 m from the edge (%s)" % hud.get_text().replace("\n", " | "))
+	hud.toggle()
+	await process_frame
+	await process_frame
+	_check(not label.visible, "HUD toggles off")
+	# Left X toggles it on the Quest; left Y is the stride cap and leaves it alone.
+	var left := XRServer.get_tracker(&"left_hand") as XRPositionalTracker
+	if left != null:
+		left.set_input("ax_button", true)
+		left.set_input("ax_button", false)
+		await process_frame
+		await process_frame
+		_check(label.visible, "left X toggles the HUD")
+		var cap_before: float = stride.max_gain
+		left.set_input("by_button", true)
+		left.set_input("by_button", false)
+		await process_frame
+		await process_frame
+		_check(label.visible, "left Y does not toggle the HUD")
+		stride.max_gain = cap_before  # Y cycled the cap: put it back
+	else:
+		hud.toggle()
 
 	print("\n%d failure(s)" % _failures)
 	quit(_failures)

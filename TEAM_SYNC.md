@@ -160,6 +160,9 @@ Weekends are buffer only.
 
 Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket IDs.
 
+- 2026-11-25, Dario: D-01 EventLogger: `room_entered` logs the connector used as `via`,
+  `set_participant()`, event names listed in the header. D-02 debug HUD (autoload `DebugHud`,
+  debug builds only, toggle X / H). Smoke test covers both. Branch `feature/logger-hud`.
 - 2026-11-25, Ahmed: A-01 to A-09 on branch `feature/a-xr-platform`: hold-to-recenter,
   72 Hz + physics rate, foveation, MSAA 2x, `ScreenFade` (boundary warning + fade on gain
   jumps), gain-cap presets, play-area footprint, `PerfMonitor`, `scripts/build_quest.sh`,
@@ -175,6 +178,11 @@ Newest first. Format: `YYYY-MM-DD, name: what changed (files)`. Mention ticket I
 
 Any change to a shared API, signal, scene structure or project setting. Say who is affected.
 
+- 2026-11-25, Dario: new autoload `DebugHud` (`extension/ui/debug_hud.gd`); it attaches a
+  Label3D under the active camera at runtime, no rig edit. Left controller X toggles it
+  (Y is A's stride cap). It shows the gain applied by `StrideScaler` and the cap.
+  Event names and data keys are now listed in `core/event_logger.gd`: please log with those.
+  Affects: everyone (left X is taken in debug builds).
 - 2026-11-25, Ahmed: `StrideScaler.recalibrate()` is gone; recentering is
   `XROrigin3D.recenter()` (signal `recentered`), which also calls `StrideScaler.reset_base()`.
   New `ScreenFade` under `XRCamera3D`: use `flash()` to hide any jump (B: portal alignment).
